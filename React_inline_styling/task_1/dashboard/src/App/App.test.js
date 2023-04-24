@@ -1,60 +1,96 @@
-import { shallow } from 'enzyme';
 import React from 'react';
+import { expect } from "chai";
+import Adapter from 'enzyme-adapter-react-16';
+import { shallow, configure } from 'enzyme';
 import App from './App';
-import { StyleSheetTestUtils } from 'aphrodite';
+import Enzyme from "enzyme";
+import Notifications from "../Notifications/Notifications";
+import Header from '../Header/Header';
+import Login from '../Login/Login';
+import Footer from '../Footer/Footer';
+import { StyleSheetTestUtils, } from 'aphrodite';
+import CourseList from '../CourseList/CourseList';
 
-describe('<App />', () => {
-  beforeAll(() => {
+configure({adapter: new Adapter()});
+describe("Testing the <App /> Component", () => {
+	let events = {};
+
+
+	beforeEach(() => {
+		events = {};
+		document.addEventListener = jest.fn((event, callback) => {
+			events[event] = callback;
+		  });
+
+		StyleSheetTestUtils.suppressStyleInjection();
+	});
+
+	afterEach(() => {
+
+		StyleSheetTestUtils.clearBufferAndResumeStyleInjection();
+		jest.useFakeTimers();
+		jest.runAllTimers();
+
+	});
+
+	it('check that renders without crashing', () => {
+		const wrapper = shallow(<App />);
+		expect(wrapper.exists());
+	  });
+
+	it('verify  <App /> contains the <Notifications /> Component', () => {
+    const wrapper = shallow(<App />);
+    expect(wrapper.find(Notifications)).to.have.lengthOf(1);
+  });
+
+  it("verify <App /> contains the <Header /> Component", () => {
+    const wrapper = shallow(<App />);
+    expect(wrapper.contains(<Header />)).to.equal(true);
+  });
+  it("verify <App /> contains the <Login /> Component", () => {
+    const wrapper = shallow(<App />);
+    expect(wrapper.contains(<Login />)).to.equal(true);
+  });
+
+  it("verify <App /> contains the <Footer /> Component", () => {
+    const wrapper = shallow(<App />);
+    expect(wrapper.contains(<Footer />)).to.equal(true);
+  });
+
+  it("verify <App /> doesn't render <CourseList /> component", () => {
+    const wrapper = shallow(<App />);
+    expect(wrapper.contains(<CourseList />)).to.equal(false);
+  });
+});
+describe(" verify <App /> Is isLoggedIn", () => {
+  beforeEach(() => {
     StyleSheetTestUtils.suppressStyleInjection();
   });
-  afterAll(() => {
+
+  afterEach(() => {
     StyleSheetTestUtils.clearBufferAndResumeStyleInjection();
+    jest.useFakeTimers();
+    jest.runAllTimers();
   });
 
-  it('render without crashing', () => {
-    const wrapper = shallow(<App />);
-    expect(wrapper.exists());
-  });
+  it("verify isLoggedIn is true ", () => {
+    const props = {
+      isLoggedIn: true,
+    };
 
-  it('contain Notifications component', () => {
-    const wrapper = shallow(<App />);
-    expect(wrapper.find('Notifications')).toHaveLength(1);
-  });
+    const wrapper = shallow(<App {...props} />);
 
-  it('contain Header component', () => {
-    const wrapper = shallow(<App />);
-    expect(wrapper.find('Header')).toHaveLength(1);
+    expect(wrapper.contains(<Login />)).to.equal(false);
+    expect(wrapper.find(CourseList)).to.have.lengthOf(1);
   });
+  test("verify logOut alerts with correct string", () => {
+    const myLogOut = jest.fn(() => undefined);
+    const myAlert = jest.spyOn(global, "alert");
 
-  it('contain Login component', () => {
-    const wrapper = shallow(<App />);
-    expect(wrapper.find('Login')).toHaveLength(1);
-  });
+    const wrapper = shallow(<App logOut={myLogOut} />);
 
-  it('contain Footer component', () => {
-    const wrapper = shallow(<App />);
-    expect(wrapper.find('Footer')).toHaveLength(1);
-  });
-
-  it('CourseList', () => {
-    const wrapper = shallow(<App />);
-    expect(wrapper.find('CourseList')).toHaveLength(0);
-  });
-
-  it('isLoggedIn true', () => {
-    const wrapper = shallow(<App isLoggedIn />);
-    expect(wrapper.exists());
-    expect(wrapper.find('Login')).toHaveLength(0);
-    expect(wrapper.find('CourseList')).toHaveLength(1);
-  });
-
-  it('logOut', () => {
-    const logOut = jest.fn(() => undefined);
-    const wrapper = shallow(<App logOut={logOut} />);
-    expect(wrapper.exists());
-    const alert = jest.spyOn(global, 'alert');
-    expect(alert);
-    expect(logOut);
+    expect(myAlert);
+    expect(myLogOut);
     jest.restoreAllMocks();
   });
 });

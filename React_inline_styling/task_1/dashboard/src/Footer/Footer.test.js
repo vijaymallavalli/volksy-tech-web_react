@@ -1,16 +1,32 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { expect } from 'chai';
+import Adapter from 'enzyme-adapter-react-16';
+import { shallow, configure } from 'enzyme';
 import Footer from './Footer';
+import { StyleSheetTestUtils } from "aphrodite";
 
-describe('<Footer />', () => {
-  const wrapper = shallow(<Footer />);
 
-  it('render without crashing', () => {
-    expect(wrapper.exists());
-  });
+configure({adapter: new Adapter()});
+describe("Testing the <Footer /> Component", () => {
+	beforeAll(() => {
+		StyleSheetTestUtils.suppressStyleInjection();
+	  });
 
-  it('paragraph and content', () => {
-    expect(wrapper.find('footer p')).toHaveLength(1);
-    expect(wrapper.find('footer p').text()).toContain('Copyright');
-  });
+	  afterAll(() => {
+		StyleSheetTestUtils.clearBufferAndResumeStyleInjection();
+	  });
+
+	let wrapper;
+
+	beforeEach(() => {
+		wrapper = shallow(<Footer shouldRender />);
+	});
+	it("<Footer /> is rendered without crashing", () => {
+		expect(wrapper.render()).to.not.be.an('undefined');
+	});
+
+	it("<Footer /> renders at least the text: Copyright", () => {
+		expect(wrapper.children('p').html()).to.include('Copyright');
+    	});
+
 });
